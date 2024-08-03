@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+
 class SongNode {
     String name;
     String singer;
@@ -27,6 +28,16 @@ class Playlist {
     private SongNode head;
     private SongNode tail;
     private int totalCount; // Track total number of songs in the playlist
+    
+     private String name;
+
+    public Playlist(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
+    }
 
     public Playlist() {
         this.head = null;
@@ -199,6 +210,11 @@ public Playlist sortByDuration() {
 }
 
 public class Music {
+     Scanner scanner; // Declare the scanner object
+
+    public Music() {
+        scanner = new Scanner(System.in); // Initialize the scanner object
+    }
     Playlist home = new Playlist(); // Home playlist
     Playlist[] playlists = new Playlist[10]; // Array of custom playlists
     int playlistCount = 0; // Count of custom playlists
@@ -287,22 +303,67 @@ public class Music {
     }
 
     // Method to create a custom playlist with a specific total duration
-    void createCustomPlaylistWithDuration(int totalDuration) {
+    void createCustomPlaylistWithName() {
         System.out.println("-------------------------------");
         System.out.println("| Creating custom playlist... |");
         System.out.println("-------------------------------");
+        System.out.print("Enter playlist name: ");
+        String playlistName = scanner.nextLine();
         Playlist customPlaylist = new Playlist();
-        SongNode current = home.getHead();
-        int currentDuration = 0;
-        while (current != null && currentDuration + current.duration <= totalDuration) {
-            customPlaylist.insertLast(current.name, current.singer, current.duration, current.lyrics);
-            currentDuration += current.duration;
-            current = current.next;
-        }
-        System.out.println("| Custom playlist created with total duration: " + currentDuration + " seconds");
         System.out.println("-------------------------------");
-        //customPlaylist.display();
+        System.out.println("| " + playlistName + " playlist created.");
+        System.out.println("-------------------------------");
+        
+        
+        int i = 0;
+        while (i < 2) {
+        System.out.print("Enter song " + (i + 1) + " name: ");
+        String songName = scanner.nextLine();
+        System.out.print("Enter song " + (i + 1) + " singer: ");
+        String singer = scanner.nextLine();
+        System.out.print("Enter song " + (i + 1) + " duration (in seconds): ");
+        int duration = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+        System.out.print("Enter song " + (i + 1) + " lyrics: ");
+        String lyrics = scanner.nextLine();
+        customPlaylist.insertLast(songName, singer, duration, lyrics);
+        i++; // Increment the counter
+        
+            // View the songs in the playlist
+        System.out.println("-------------------------------");
+        System.out.println("| Songs in " + playlistName + " playlist:");
+        System.out.println("-------------------------------");
+        customPlaylist.displayNamesOnly();
+
+        playlists[playlistCount] = customPlaylist;
+        playlistCount++;
+
+}
     }
+    void addSongToPlaylist() {
+    System.out.print("Enter playlist number to add song to: ");
+    int playlistNumber = scanner.nextInt();
+    scanner.nextLine(); // Consume newline
+    if (playlistNumber >= 1 && playlistNumber <= playlistCount) {
+        System.out.print("Enter song name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter singer name: ");
+        String singer = scanner.nextLine();
+        System.out.print("Enter duration (in seconds): ");
+        int duration = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+        System.out.print("Enter lyrics: ");
+        String lyrics = scanner.nextLine();
+        playlists[playlistNumber - 1].insertLast(name, singer, duration, lyrics);
+        System.out.println("-------------------------------");
+        System.out.println("| Song added to playlist " + playlistNumber);
+        System.out.println("-------------------------------");
+    } else {
+        System.out.println("-------------------------------");
+        System.out.println("| Invalid playlist number.");
+        System.out.println("-------------------------------");
+    }
+}
 
     // Method to crossfade play between two songs
     void crossfadePlay(SongNode current, SongNode next) {
@@ -355,19 +416,18 @@ public class Music {
                     break;
                 }
                 case 3: {
-                    System.out.print("Enter total duration for custom playlist (in seconds): ");
-                    int duration = scanner.nextInt();
-                    player.createCustomPlaylistWithDuration(duration);
+                    player.createCustomPlaylistWithName();
                     break;
                 }
                  case 4: {
-                     for (int i = 0; i < player.playlistCount; i++) {
-                         System.out.println("-------------------------------");
-                         System.out.println("| Playlist " + (i + 1) + ":");
-                        // player.playlists[i].display();
-
-                     }
-                     break;
+                    System.out.println("-------------------------------");
+                    System.out.println("| Available Playlists:");
+                    System.out.println("-------------------------------");
+                    for (int i = 0; i < player.playlistCount; i++) {
+                         System.out.println("| " + (i + 1) + ". " + player.playlists[i].getName());
+                         }
+                        System.out.println("-------------------------------");
+                        break;
                  }
                 case 5: {
                     System.out.print("Enter song name to play: ");
@@ -503,9 +563,7 @@ public class Music {
                     break;
                 }
                 case 15: {
-                    System.out.print("Enter total duration for custom playlist (in seconds): ");
-                    int duration = scanner.nextInt();
-                    player.createCustomPlaylistWithDuration(duration);
+                    player.addSongToPlaylist();
                     break;
                 }
                 case 16: {
@@ -561,4 +619,5 @@ public class Music {
             }
         }
     }
+    
 }
