@@ -2,7 +2,9 @@
 package music;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -15,6 +17,9 @@ class SongNode {
     String lyrics; // Store lyrics
     SongNode next;
     SongNode prev;
+    boolean isRepeated;
+    int repeatCount;
+
 
     public SongNode(String name, String singer, int duration, String lyrics) {
         this.name = name;
@@ -22,15 +27,17 @@ class SongNode {
         this.duration = duration;
         this.playCount = 0; // Initialize play count to 0
         this.lyrics = lyrics; // Store lyrics
+        this.isRepeated = false; // Initialize pause to false
     }
 }
 
 class Playlist {
     private SongNode head;
-    private SongNode tail;
-    private int totalCount; // Track total number of songs in the playlist
+    SongNode tail;
+    int totalCount; // Track total number of songs in the playlist
     
      private String name;
+    private boolean isRepeated; // Add a repeat variable to keep track of whether the playlist is repeated
 
     public Playlist(String name) {
         this.name = name;
@@ -44,19 +51,21 @@ class Playlist {
         this.head = null;
         this.tail = null;
         this.totalCount = 0; // Initialize song count to 0
+        this.isRepeated = false; // Initialize repeat to false
+
     }
 
     public void insertFirst(String name, String singer, int duration, String lyrics) {
-        SongNode newNode = new SongNode(name, singer, duration, lyrics);
-        if (head == null) {
-            head = newNode;
-            tail = newNode;
-        } else {
-            newNode.next = head;
-            head.prev = newNode;
-            head = newNode;
-        }
-        totalCount++; // Increment song count
+       SongNode newNode = new SongNode(name, singer, duration, lyrics);
+    if (tail == null) {
+        head = newNode;
+        tail = newNode;
+    } else {
+        tail.next = newNode;
+        newNode.prev = tail;
+        tail = newNode;
+    }
+    totalCount++; // increment the total count
     }
 
     public void insertLast(String name, String singer, int duration, String lyrics) {
@@ -205,16 +214,20 @@ public Playlist sortByDuration() {
     }
     
     return this;
-}
-
     
 }
+
+}
+
 
 public class Music {
      Scanner scanner; // Declare the scanner object
 
        // Map to track play counts by date
     Map<String, Map<LocalDate, Integer>> playCountByDate = new HashMap<>();
+    Map<String, List<SongNode>> moodBasedSongs = new HashMap<>();
+    private String nextSongName;
+    private int repeatCount;
     public Music() {
         scanner = new Scanner(System.in); // Initialize the scanner object
     }
@@ -231,27 +244,36 @@ public class Music {
         System.out.println("       🎵 Music Player 🎵      ");
         System.out.println("*****************************");
         System.out.println("| 1. Add Song to Home       |");
-        System.out.println("| 2. Display Home Playlist  |");
-        System.out.println("| 3. Create New Playlist    |");
-        System.out.println("| 4. Display Playlists      |");
-        System.out.println("| 5. Play Song              |");
-        System.out.println("| 6. Sort Songs by Name     |");
-        System.out.println("| 7. Sort Songs by Singer   |");
-        System.out.println("| 8. Sort Songs by Duration |");
-        System.out.println("| 9. Insert Song at Beginning|");
-        System.out.println("| 10. Insert Song at End    |");
-        System.out.println("| 11. Display a Playlist    |");
-        System.out.println("| 12. Recommend Songs       |");
-        System.out.println("| 13. Display Lyrics        |");
-        System.out.println("| 14. Search Song           |");
-        System.out.println("| 15. Create Custom Playlist|");
-        System.out.println("| 16. Crossfade Play        |");
-        System.out.println("| 17. Songs Total Count     |");
-        System.out.println("| 18. Today's Biggest Hit     |");
+        System.out.println("| 2. Create New Playlist    |");
+        System.out.println("| 3. Display Playlists      |");
+        System.out.println("| 4. Play Song              |");
+        System.out.println("| 5. Sort Songs by Name     |");
+        System.out.println("| 6. Sort Songs by Singer   |");
+        System.out.println("| 7. Sort Songs by Duration |");
+        System.out.println("| 8. Insert Song at Beginning|");
+        System.out.println("| 9. Insert Song at End    |");
+        System.out.println("| 10. Recommend Songs       |");
+        System.out.println("| 11. Display Lyrics        |");
+        System.out.println("| 12. Search Song           |");
+        System.out.println("| 13. Create Custom Playlist|");
+        System.out.println("| 14. Crossfade Play        |");
+        System.out.println("| 15. Songs Total Count     |");
+        System.out.println("| 16. Today's Biggest Hit     |");
+        System.out.println("| 17. Repeat Song     |");
+        System.out.println("| 18. Favourite Songs     |");
+        System.out.println("| 19. Songs By Mood or Actiivty     |");
         System.out.println("| 0. Exit                   |");
         System.out.println("-----------------------------");
     }
 
+    public void addSongToHome(String name, String singer, int duration, String lyrics, String mood) {
+             home.insertLast(name, singer, duration, lyrics);
+             // Add the song to the mood-based songs list
+             if (!moodBasedSongs.containsKey(mood)) {
+                       moodBasedSongs.put(mood, new ArrayList<>());
+                 }
+                  moodBasedSongs.get(mood).add(home.tail);
+}
     // Method to recommend songs based on play count
     void recommendSongs() {
         System.out.println("-------------------------------");
@@ -262,6 +284,64 @@ public class Music {
             .limit(5)
             .forEach(entry -> System.out.printf("| %-25s | %4d |\n", entry.getKey(), entry.getValue()));
         System.out.println("-------------------------------");
+    }
+    private SongNode currentSong; // Track the current song being played
+    // Method to set the current song to repeat
+    void setRepeat(boolean repeat) {
+        if (currentSong != null) {
+        currentSong.isRepeated = repeat;
+        if (repeat) {
+            System.out.println("Song \"" + currentSong.name + "\" is set to repeat.");
+        } else {
+            System.out.println("Repeat mode for song \"" + currentSong.name + "\" is disabled.");
+        }
+    } else {
+        System.out.println("No song is currently playing.");
+    }
+    }
+    // Method to handle playing the song
+    void playSong(SongNode song) {
+         System.out.println("-------------------------------");
+         System.out.println("| Playing song: " + song.name);
+         currentSong = song; // Update current song
+         song.playCount++;
+         updatePlayCount(song.name); // Update play count
+         System.out.println("-------------------------------");
+         handleRepeat(); // Check if the song needs to be repeated
+    }
+    // Method to add a song to a specific mood/activity
+    public void addSongToMood(String mood, SongNode song) {
+        if (!moodBasedSongs.containsKey(mood)) {
+            moodBasedSongs.put(mood, new ArrayList<>());
+        }
+        moodBasedSongs.get(mood).add(song);
+    }
+
+    // Method to filter songs by mood/activity
+    public void filterSongsByMood(String mood) {
+        if (moodBasedSongs.containsKey(mood)) {
+        List<SongNode> filteredSongs = moodBasedSongs.get(mood);
+        System.out.println("-------------------------------");
+        System.out.println("| Songs for " + mood + ":");
+        System.out.println("-------------------------------");
+        for (SongNode song : filteredSongs) {
+            System.out.println("| " + song.name + " by " + song.singer);
+        }
+        System.out.println("-------------------------------");
+    } else {
+        System.out.println("-------------------------------");
+        System.out.println("| No songs found for " + mood + ".");
+        System.out.println("-------------------------------");
+    }    }
+
+     // Method to handle playing the next song in repeat mode
+    void handleRepeat() {
+        if (currentSong != null && currentSong.repeatCount > 0) {
+        currentSong.repeatCount--;
+        System.out.println("-------------------------------");
+        System.out.println("| Replaying song: " + currentSong.name);
+        playSong(currentSong); // Replay the current song
+    }
     }
 
     // Method to display lyrics of the currently playing song
@@ -371,10 +451,19 @@ public class Music {
 
     // Method to crossfade play between two songs
     void crossfadePlay(SongNode current, SongNode next) {
-        System.out.println("-------------------------------------------------------------");
-        System.out.println("| Crossfading from " + current.name + " to " + next.name + "...");
-        System.out.println("-------------------------------------------------------------");
-        // Simulated crossfade logic
+        while (current.next != null) {
+        current = current.next;
+        if (current.name.equalsIgnoreCase(nextSongName)) {
+            System.out.println("Crossfading from " + current.prev.name + " to " + current.name);
+            nextSongName = current.name; // Update nextSongName
+            break;
+        }
+    }
+    if (current.next == null) {
+        System.out.println("Next song not found.");
+    } else {
+        next = current.next; // This line is not necessary and can be removed
+    }
     }
 
     // Method to add lyrics to a song
@@ -420,7 +509,9 @@ public class Music {
     }
     System.out.println("-------------------------------");
     }
+    
 
+    
 
     // Main method
     public static void main(String[] args) {
@@ -433,34 +524,40 @@ public class Music {
             scanner.nextLine(); // Consume newline
             switch (choice) {
                 case 1: {
-                    while (true) {
-                    System.out.print("Enter song name (or type 'exit' to stop adding songs): ");
-                    String name = scanner.nextLine();
-                    if (name.equalsIgnoreCase("exit")) {
-                        break;
-                    }
-                    System.out.print("Enter singer name: ");
-                    String singer = scanner.nextLine();
-                    System.out.print("Enter duration (in seconds): ");
-                    int duration = scanner.nextInt();
-                    scanner.nextLine(); // Consume newline
-                    System.out.print("Enter lyrics: ");
-                    String lyrics = scanner.nextLine();
-                    player.home.insertLast(name, singer, duration, lyrics);
-                    player.displayTotalSongsCount();
+          while (true) 
+          {
+              System.out.print("Enter song name (or type 'exit' to stop adding songs): ");
+              String name = scanner.nextLine();
+              if (name.equalsIgnoreCase("exit")) {
+                  break;
                 }
-                    break;
+               System.out.print("Enter singer name: ");
+               String singer = scanner.nextLine();
+               System.out.print("Enter duration (in seconds): ");
+               int duration = scanner.nextInt();
+               scanner.nextLine(); // Consume newline
+               System.out.print("Enter lyrics: ");
+               String lyrics = scanner.nextLine();
+               System.out.print("Enter mood (happy, sad, workout, etc.): ");
+               String mood = scanner.nextLine();
+               System.out.print("Do you want to repeat this song (yes/no): ");
+               String repeat = scanner.nextLine();
+               boolean isRepeated = repeat.equalsIgnoreCase("yes");
 
+               player.addSongToHome(name, singer, duration, lyrics, mood);
+               if (isRepeated) {
+                    player.setRepeat(true);
+                } 
+
+                player.displayTotalSongsCount();
+                }
+                break;
                 }
                 case 2: {
-                    //player.home.display();
-                    break;
-                }
-                case 3: {
                     player.createCustomPlaylistWithName();
                     break;
                 }
-                 case 4: {
+                 case 3: {
                     System.out.println("-------------------------------");
                     System.out.println("| Available Playlists:");
                     System.out.println("-------------------------------");
@@ -470,29 +567,27 @@ public class Music {
                         System.out.println("-------------------------------");
                         break;
                  }
-                case 5: {
-                    System.out.print("Enter song name to play: ");
-                    String name = scanner.nextLine();
-                    SongNode current = player.home.getHead();
-                    while (current != null) {
-                    if (current.name.equalsIgnoreCase(name)) {
+                case 4: {
+                 System.out.print("Enter song name to play: ");
+                 String name = scanner.nextLine();
+                 SongNode current = player.home.getHead();
+                 while (current != null) {
+                 if (current.name.equalsIgnoreCase(name)) {
+                      player.playSong(current); // Set current song and play it
+                      player.handleRepeat(); // Check if the song needs to be repeated
+                      break;
+                    }
+                    current = current.next;
+                    }
+                    if (current == null) {
                         System.out.println("-------------------------------");
-                        System.out.println("| Playing song: " + current.name);
-                        player.updatePlayCount(current.name); // Update play count
-                        current.playCount++;
+                        System.out.println("| Song not found.");
                         System.out.println("-------------------------------");
-                        break;
-            }
-            current = current.next;
-        }
-        if (current == null) {
-            System.out.println("-------------------------------");
-            System.out.println("| Song not found.");
-            System.out.println("-------------------------------");
-        }
-                    break;
+                        }
+                       break;
+            
                 }
-                case 6: {
+                case 5: {
                     player.home = player.home.sortByName();
                     System.out.println("-------------------------------");
                     System.out.printf("| %-25s |\n", "Song Name");
@@ -501,7 +596,7 @@ public class Music {
                     player.home.displayNamesOnly();
                      break;
                 }
-               case 7: {
+               case 6: {
                      player.home = player.home.sortBySinger();
                      System.out.println("-------------------------------");
                      System.out.printf("| %-25s | %-20s |\n", "Song Name", "Singer");
@@ -512,7 +607,7 @@ public class Music {
                      break;
 }
 
-                case 8: {
+                case 7: {
                      player.home = player.home.sortByDuration();
                      System.out.println("-------------------------------");
                      System.out.printf("| %-25s | %-10s |\n", "Song Name", "Duration");
@@ -521,7 +616,7 @@ public class Music {
                      System.out.println("-------------------------------");
                      break;
 }
-                case 9: {
+                case 8: {
                     System.out.print("Enter song name: ");
                     String name = scanner.nextLine();
                     System.out.print("Enter singer name: ");
@@ -538,7 +633,7 @@ public class Music {
 
                     break;
                 }
-                case 10: {
+                case 9: {
                     System.out.print("Enter song name: ");
                     String name = scanner.nextLine();
                     System.out.print("Enter singer name: ");
@@ -555,30 +650,12 @@ public class Music {
 
                     break;
                 }
-                case 11: {
-                    System.out.print("Enter playlist number to display: ");
-                    int num = scanner.nextInt();
-                    if (num >= 0 && num < player.playlistCount) {
-                       // player.playlists[num].display();
-                        System.out.println("--------------------------------------------");
-                        int playlistNumber = 0;
-                        System.out.println("   *** Playlist " + playlistNumber + " ***");
-                        System.out.println("--------------------------------------------");
-                        //player.playlists[playlistNumber - 1].display();
-                        System.out.println("-------------------------------");
-                    } else {
-                        System.out.println("-------------------------------");
-                        System.out.println("| Invalid playlist number.");
-                        System.out.println("-------------------------------");
-
-                    }
-                    break;
-                }
-                case 12: {
+                
+                case 10: {
                     player.recommendSongs();
                     break;
                 }
-                case 13: {
+                case 11: {
                     System.out.print("Enter song name to display lyrics: ");
                     String name = scanner.nextLine();
                     SongNode current = player.home.getHead();
@@ -597,59 +674,61 @@ public class Music {
                     }
                     break;
                 }
-                case 14: {
+                case 12: {
                     System.out.print("Enter song name, singer, or lyrics to search: ");
                     String query = scanner.nextLine();
                     player.searchSong(query);
                     break;
                 }
-                case 15: {
+                case 13: {
                     player.addSongToPlaylist();
                     break;
                 }
-                case 16: {
+                case 14: {
                     System.out.print("Enter current song name: ");
                     String currentName = scanner.nextLine();
                     System.out.print("Enter next song name: ");
                     String nextName = scanner.nextLine();
                     SongNode current = player.home.getHead();
-                    SongNode next = null;
-                    while (current != null) {
-                        if (current.name.equalsIgnoreCase(currentName)) {
-                            next = current.next;
-                            while (next != null) {
-                                if (next.name.equalsIgnoreCase(nextName)) {
-                                    player.crossfadePlay(current, next);
-                                    break;
-                                }
-                                else
-                                System.out.println("-------------------------------");
-                                System.out.println("One or both songs not found");
-                                System.out.println("-------------------------------");
-
-                                next = next.next;
-                            }
-                            break;
-                        }
-                        current = current.next;
+                    while (current!= null) {
+                    if (current.name.equalsIgnoreCase(currentName)) {
+                       player.crossfadePlay(current, current);
+                       break;
                     }
-                    if (current == null || next == null) {
-                        System.out.println("-------------------------------");
-                        System.out.println("| Song not found.");
-                        System.out.println("-------------------------------");
-
-                    }
-                    break;
+                    current = current.next;
+                      }
+                      if (current == null) {
+                      System.out.println("-------------------------------");
+                      System.out.println("| Current song not found.");
+                      System.out.println("-------------------------------");
+                     }
+                     break;
                 }
-                case 17: {
+                case 15: {
                     player.displayTotalSongsCount();
                     break;
                 }
-                case 18:
+                case 16:
                 {
                      player.getTodaysBiggestHit();
                      break;
                 }
+                case 17 : 
+                {
+                    System.out.print("Enter 'on' to repeat or 'off' to disable repeat: ");
+                    String repeatCommand = scanner.nextLine();
+                    boolean repeat = repeatCommand.equalsIgnoreCase("on");
+                    player.setRepeat(repeat);
+                    break;
+                }
+                case 19 :
+                {
+                    System.out.print("Enter mood/activity (e.g., happy, sad, workout,love): ");
+                    String mood = scanner.nextLine();
+                    player.filterSongsByMood(mood);
+                    break;
+                }
+                        
                 case 0: {
                     System.out.println("-------------------------------");
                     System.out.println("| Exiting the Music Player.");
@@ -665,5 +744,19 @@ public class Music {
             }
         }
     }
-    
+
+   
 }
+            
+            
+            
+            
+
+   
+
+    
+
+   
+
+   
+
