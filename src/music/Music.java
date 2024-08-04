@@ -1,6 +1,7 @@
 
 package music;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -212,6 +213,8 @@ public Playlist sortByDuration() {
 public class Music {
      Scanner scanner; // Declare the scanner object
 
+       // Map to track play counts by date
+    Map<String, Map<LocalDate, Integer>> playCountByDate = new HashMap<>();
     public Music() {
         scanner = new Scanner(System.in); // Initialize the scanner object
     }
@@ -244,6 +247,7 @@ public class Music {
         System.out.println("| 15. Create Custom Playlist|");
         System.out.println("| 16. Crossfade Play        |");
         System.out.println("| 17. Songs Total Count     |");
+        System.out.println("| 18. Today's Biggest Hit     |");
         System.out.println("| 0. Exit                   |");
         System.out.println("-----------------------------");
     }
@@ -285,7 +289,7 @@ public class Music {
                 System.out.println("| Found song: " + current.name + " by " + current.singer);
                 System.out.println("-------------------------------");
                 found = true;
-                break;
+                
             }
             current = current.next;
         }
@@ -380,6 +384,43 @@ public class Music {
         System.out.println("| Lyrics added to " + song.name);
         System.out.println("-------------------------------");
     }
+     // Method to update the play count for a song
+    void updatePlayCount(String songName) {
+         LocalDate today = LocalDate.now();
+         playCountByDate.putIfAbsent(songName, new HashMap<>());
+         Map<LocalDate, Integer> dailyCounts = playCountByDate.get(songName);
+         dailyCounts.put(today, dailyCounts.getOrDefault(today, 0) + 1);
+    
+    // Update the playCount map
+    playCount.put(songName, playCount.getOrDefault(songName, 0) + 1);
+    }
+
+    // Method to retrieve and display today's biggest hit
+    void getTodaysBiggestHit() {
+        String biggestHit = null;
+        int maxPlays = 0;
+
+         for (Map.Entry<String, Integer> entry : playCount.entrySet()) {
+             String songName = entry.getKey();
+             int totalPlays = entry.getValue();
+
+             if (totalPlays > maxPlays) {
+                maxPlays = totalPlays;
+                biggestHit = songName;
+             }
+    }
+
+         System.out.println("-------------------------------");
+         if (biggestHit!= null) {
+             System.out.println("| Today's Biggest Hit: " + biggestHit);
+             System.out.println("| Play Count: " + maxPlays);
+    }
+    else {
+             System.out.println("| No plays recorded today.");
+    }
+    System.out.println("-------------------------------");
+    }
+
 
     // Main method
     public static void main(String[] args) {
@@ -434,21 +475,21 @@ public class Music {
                     String name = scanner.nextLine();
                     SongNode current = player.home.getHead();
                     while (current != null) {
+                    if (current.name.equalsIgnoreCase(name)) {
                         System.out.println("-------------------------------");
-                        if (current.name.equalsIgnoreCase(name)) {
-                            System.out.println("| Playing song: " + current.name);
-                            player.playCount.put(current.name, player.playCount.getOrDefault(current.name, 0) + 1);// Increment play count
-                            current.playCount++;
-                             System.out.println("-------------------------------");
-                            break;
-                        }
-                        current = current.next;
-                    }
-                    if (current == null) {
+                        System.out.println("| Playing song: " + current.name);
+                        player.updatePlayCount(current.name); // Update play count
+                        current.playCount++;
                         System.out.println("-------------------------------");
-                        System.out.println("| Song not found.");
-                        System.out.println("-------------------------------");
-                    }
+                        break;
+            }
+            current = current.next;
+        }
+        if (current == null) {
+            System.out.println("-------------------------------");
+            System.out.println("| Song not found.");
+            System.out.println("-------------------------------");
+        }
                     break;
                 }
                 case 6: {
@@ -603,6 +644,11 @@ public class Music {
                 case 17: {
                     player.displayTotalSongsCount();
                     break;
+                }
+                case 18:
+                {
+                     player.getTodaysBiggestHit();
+                     break;
                 }
                 case 0: {
                     System.out.println("-------------------------------");
