@@ -35,23 +35,30 @@ class Playlist {
     private SongNode head;
     SongNode tail;
     int totalCount; // Track total number of songs in the playlist
+    int songCount; // Track the number of songs in the playl
     
      private String name;
     private boolean isRepeated; // Add a repeat variable to keep track of whether the playlist is repeated
 
     public Playlist(String name) {
         this.name = name;
+        
     }
 
     public String getName() {
         return this.name;
     }
+      public int getSongCount() {
+        return this.songCount;
+    }
+
 
     public Playlist() {
         this.head = null;
         this.tail = null;
         this.totalCount = 0; // Initialize song count to 0
         this.isRepeated = false; // Initialize repeat to false
+        this.songCount = 0;
 
     }
 
@@ -66,6 +73,7 @@ class Playlist {
         tail = newNode;
     }
     totalCount++; // increment the total count
+    songCount++;
     }
 
     public void insertLast(String name, String singer, int duration, String lyrics) {
@@ -79,6 +87,7 @@ class Playlist {
             tail = newNode;
         }
         totalCount++; // Increment song count
+        songCount++;
     }
 
    public void displayNamesOnly() {
@@ -217,6 +226,14 @@ public Playlist sortByDuration() {
     
 }
 
+    boolean containsSong(String songName) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    void insertFirst(String songName) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
 }
 
 
@@ -228,6 +245,8 @@ public class Music {
     Map<String, List<SongNode>> moodBasedSongs = new HashMap<>();
     private String nextSongName;
     private int repeatCount;
+    private Playlist favorites = new Playlist();
+
     public Music() {
         scanner = new Scanner(System.in); // Initialize the scanner object
     }
@@ -260,19 +279,21 @@ public class Music {
         System.out.println("| 15. Songs Total Count     |");
         System.out.println("| 16. Today's Biggest Hit     |");
         System.out.println("| 17. Repeat Song     |");
-        System.out.println("| 18. Favourite Songs     |");
-        System.out.println("| 19. Songs By Mood or Actiivty     |");
+        System.out.println("| 18. Songs By Mood or Actiivty     |");
+        System.out.println("| 19. Favourite Songs     |");
         System.out.println("| 0. Exit                   |");
         System.out.println("-----------------------------");
     }
 
     public void addSongToHome(String name, String singer, int duration, String lyrics, String mood) {
-             home.insertLast(name, singer, duration, lyrics);
-             // Add the song to the mood-based songs list
-             if (!moodBasedSongs.containsKey(mood)) {
-                       moodBasedSongs.put(mood, new ArrayList<>());
-                 }
-                  moodBasedSongs.get(mood).add(home.tail);
+            home.insertLast(name, singer, duration, lyrics);
+    // Add the song to the mood-based songs list
+    if (!moodBasedSongs.containsKey(mood)) {
+        moodBasedSongs.put(mood, new ArrayList<>());
+    }
+    moodBasedSongs.get(mood).add(home.tail);
+    // Add the song to the favorites playlist
+    favorites.insertLast(name, singer, duration, lyrics);
 }
     // Method to recommend songs based on play count
     void recommendSongs() {
@@ -378,6 +399,26 @@ public class Music {
             System.out.println("-------------------------------");
         }
     }
+    void addSongToFavorites() {
+    if (currentSong != null) {
+        favorites.insertLast(currentSong.name, currentSong.singer, currentSong.duration, currentSong.lyrics);
+    }
+}
+    void displayFavouriteSongs()
+    {
+        if (favorites.getTotalCount() == 0) {
+        System.out.println("-------------------------------");
+        System.out.println("| No favorite songs added yet.");
+        System.out.println("-------------------------------");
+    } else {
+        System.out.println("-------------------------------");
+        System.out.println("| Favorite Songs:");
+        System.out.println("-------------------------------");
+        favorites.displayNamesOnly();
+    }
+    
+    
+    }
 
     // Method to display the total number of songs in the home playlist
     void displayTotalSongsCount() {
@@ -411,11 +452,12 @@ public class Music {
         System.out.print("Enter song " + (i + 1) + " lyrics: ");
         String lyrics = scanner.nextLine();
         customPlaylist.insertLast(songName, singer, duration, lyrics);
+        
         i++; // Increment the counter
         
             // View the songs in the playlist
         System.out.println("-------------------------------");
-        System.out.println("| Songs in " + playlistName + " playlist:");
+        System.out.println("| Total: " + customPlaylist.getSongCount());
         System.out.println("-------------------------------");
         customPlaylist.displayNamesOnly();
 
@@ -721,12 +763,20 @@ public class Music {
                     player.setRepeat(repeat);
                     break;
                 }
-                case 19 :
+                case 18 :
                 {
                     System.out.print("Enter mood/activity (e.g., happy, sad, workout,love): ");
                     String mood = scanner.nextLine();
                     player.filterSongsByMood(mood);
                     break;
+                }
+                case 19 :
+                {
+                     System.out.println("-------------------------------");
+                     System.out.println("| Favorite Songs:");
+                     player.displayFavouriteSongs(); 
+                     System.out.println("-------------------------------");
+                     break;
                 }
                         
                 case 0: {
